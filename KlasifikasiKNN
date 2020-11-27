@@ -1,0 +1,45 @@
+clc 
+clear
+close all
+% Baca database fitur
+load dbfitur.mat
+ciriglcm2 = [];
+for i=1:17
+     %Membaca image
+    citra = imread(sprintf('Uji%d.jpeg',i)); 
+    %Generate nama ke struct
+    data(i).name = sprintf('Uji%d.jpeg',i); 
+    %Mengubah ukuran ke ukuran 150x150
+    citra1 = imresize(citra,[150 150]); 
+    %Mengambil satu layer   
+    citra2 = citra1(:,:,1); 
+    %Ektraksi fitur GLCM
+    matrik_ko = graycomatrix(citra2,'Offset',[0 1]); 
+    %Mengambil properties GLCM
+    [haralick] = haralickTextureFeatures(matrik_ko);
+    %Memasukan fitur ke struct
+     data(i).ciri=haralick(:);
+     ciriglcm2=[ciriglcm2 data(i).ciri];
+    %Memasukan fitur ke struct
+     data(i).ciri=haralick(:);
+ end
+%Transpose matriks
+ciriglcm2=ciriglcm2';
+%Melakukan pelatihan K-NN dengan inputan fiturlatih
+c = fitcknn(ciriglcm,group,'NumNeighbors',1,...
+    'NSMethod','exhaustive','Distance','euclidean',...
+    'Standardize',1); %Untuk Matlab di Atas Versi 2017a 
+% class = knnclassify(fituruji,fiturlatih,group,1,'euclidean','nearest'); %Untuk Matlab di bawah versi 2017a
+ 
+%Melakukan klasifikasi dengan K-NN yang telah terlatih sebelumnya
+class=predict(c,ciriglcm2);
+%Melakukan ekstraksi hasil klasifikasi
+x=string(class);
+for j=1:i
+    %Memasukan hasil klasifikasi ke-j ke struct
+    data(j).jenis=class(j);
+end
+%Membuat table dari struct
+a=struct2table(data);
+%Save table ke Excel
+writetable(a,'hasil pengujian2.xlsx');
