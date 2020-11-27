@@ -1,0 +1,42 @@
+clc 
+clear
+close all
+ciriglcm = [];
+for i=1:17
+    %Membaca image
+    baca = imread(sprintf('Latih%d.jpeg',i)); 
+    %Generate nama ke struct
+    data(i).name = sprintf('Latih%d.jpeg',i); 
+    %Mengubah ukuran ke ukuran 150x150
+    im = imresize(baca,[150 150]); 
+%   [rows columns numberOfColorChannels] = size(im);
+    %Konversi ke 1 layer
+    ImageFile=im(:,:,1);
+    %Ektraksi fitur GLCM
+    matko = graycomatrix(ImageFile,'Offset',[0 1]); 
+    %Mengambil properties GLCM
+  [haralick] = haralickTextureFeatures(matko);
+    %Memasukan fitur ke struct
+     data(i).ciri=haralick(:);
+        ciriglcm=[ciriglcm data(i).ciri];
+          if (i>=1 && i<=3)
+        data(i).jenis='Covid19';
+        group(i)={'Covid19'};
+    elseif (i>=4 && i<=10)
+        data(i).jenis='Normal';
+        group(i)={'Normal'};
+    elseif (i>=11 && i<=17)
+        data(i).jenis='Pneumonia';
+        group(i)={'Pneumonia'};
+    end
+end
+%Transpose matriks
+ciriglcm=ciriglcm';
+group=group'; 
+%Mengubah struct ke table
+a=struct2table(data); 
+%Menyimpan table ke excel
+writetable(a,'data latih.xlsx'); 
+%Menyimpan group dan fitur ke database
+save dbfitur.mat group ciriglcm; 
+
